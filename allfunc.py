@@ -80,7 +80,7 @@ def checkRDMs(ncas,nelecas,xyzfile,basis,spin,charge,verbose):
     mol.atom = str(xyzfile)+".xyz"
     mol.charge=charge
     mol.spin=spin
-    mol.verbose = 4
+    mol.verbose = verbose
     mol.basis = basis
     mol.symmetry = True 
     mol.build()
@@ -90,7 +90,7 @@ def checkRDMs(ncas,nelecas,xyzfile,basis,spin,charge,verbose):
     myhf = mol.RHF()
     myhf.chkfile = 'HF_'+str(xyzfile)+'.chk'
     myhf.init_guess = 'HF_'+str(xyzfile)+'.chk'
-    myhf.max_cycle=5000
+    myhf.max_cycle=100
     myhf.kernel()
 
     orbitals=get_mo(myhf,mol)
@@ -103,13 +103,13 @@ def checkRDMs(ncas,nelecas,xyzfile,basis,spin,charge,verbose):
         #Saving HF data
     with open('save_'+str(xyzfile)+'_HF.pkl', 'wb') as f:
         pickle.dump([E_hf,d_hf], f)
-        write_all_coeffs(mol,orbitals["canonical"],prefix=f"HF_{xyzfile}",dirname="cmo_"+str(xyzfile),margin=5)
+    write_all_coeffs(mol,orbitals["canonical"],prefix=f"HF_{xyzfile}",dirname="cmo_"+str(xyzfile),margin=5)
 
     mycas = myhf.CASSCF(ncas, nelecas)
     mycas.natorb=True
     mycas.chkfile='CAS_'+str(xyzfile)+'.chk'
     mycas.init_guess='CAS_'+str(xyzfile)+'.chk'
-    mycas.verbose = 4
+    mycas.verbose = verbose
     mycas.kernel()
 
     casvec=mycas.ci
@@ -230,9 +230,9 @@ def checkRDMs(ncas,nelecas,xyzfile,basis,spin,charge,verbose):
         fullD2[aaSize+nmo2g**2:sizeD2,aaSize+nmo2g**2:sizeD2]=D2bb
     
         return (aD2aa,aD2ab,aD2bb),(D2aa,D2ab,D2bb), fullD2
-    (aD2aa,aD2ab,aD2bb),(D2aa,D2ab,D2bb), fullD2 = make_Dmats(mol,mycas,casvec,ncas,nelecas)
-    def make_mGaaaa(mol,mycas,casvec,ncas,nelecas):  
     
+    def make_mGaaaa(mol,mycas,casvec,ncas,nelecas):  
+        (aD2aa,aD2ab,aD2bb),(D2aa,D2ab,D2bb), fullD2 = make_Dmats(mol,mycas,casvec,ncas,nelecas)
         (dm1a,dm1b), (dm2aa,dm2ab,dm2bb) = mycas.fcisolver.make_rdm12s(casvec,ncas,nelecas)
         #d2aa_corrected = dm2aa.transpose(0, 2, 1, 3)
         nmo2g=dm2aa.shape[0]
@@ -277,7 +277,8 @@ def checkRDMs(ncas,nelecas,xyzfile,basis,spin,charge,verbose):
   
         return mGaa,mGaa_2d 
     def make_mGabab(mol,mycas,casvec,ncas,nelecas):
-        
+        (aD2aa,aD2ab,aD2bb),(D2aa,D2ab,D2bb), fullD2 = make_Dmats(mol,mycas,casvec,ncas,nelecas)
+
         (dm1a,dm1b), (dm2aa,dm2ab,dm2bb) = mycas.fcisolver.make_rdm12s(casvec,ncas,nelecas)
     
     
@@ -318,7 +319,8 @@ def checkRDMs(ncas,nelecas,xyzfile,basis,spin,charge,verbose):
                 Gabab_2d[ij, kl] = Gabab[i, j, k, l]
         return Gabab, Gabab_2d
     def make_mGaabb(mol,mycas,casvec,ncas,nelecas):
-   
+        (aD2aa,aD2ab,aD2bb),(D2aa,D2ab,D2bb), fullD2 = make_Dmats(mol,mycas,casvec,ncas,nelecas)
+
         (dm1a,dm1b), (dm2aa,dm2ab,dm2bb) = mycas.fcisolver.make_rdm12s(casvec,ncas,nelecas)
         
         
